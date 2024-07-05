@@ -161,15 +161,19 @@ add_action('rest_api_init', 'gallop_register_rest_route');
 
 function register_gallop_meta()
 {
-	register_post_meta('post', 'gallop_zip_file', [
-		'show_in_rest' => true,
-		'single' => true,
-		'type' => 'string',
-		'sanitize_callback' => 'gallop_sanitize_zip_file',
-		'auth_callback' => function () {
-			return current_user_can('edit_posts');
-		}
-	]);
+	$post_types = get_post_types(['public' => true], 'names');
+
+	foreach ($post_types as $post_type) {
+		register_post_meta($post_type, 'gallop_zip_file', [
+			'show_in_rest' => true,
+			'single' => true,
+			'type' => 'string',
+			'sanitize_callback' => 'gallop_sanitize_zip_file',
+			'auth_callback' => function () {
+				return current_user_can('edit_posts');
+			}
+		]);
+	}
 }
 add_action('init', 'register_gallop_meta');
 
