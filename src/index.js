@@ -2,13 +2,29 @@ import { registerPlugin } from "@wordpress/plugins";
 import { PluginDocumentSettingPanel } from "@wordpress/edit-post";
 import { Button } from "@wordpress/components";
 import { useSelect, useDispatch } from "@wordpress/data";
+import { useEffect } from "@wordpress/element";
 
 const DownloadImagesButton = () => {
 	const postId = wp.data.select("core/editor").getCurrentPostId();
-	const meta = useSelect((select) =>
-		select("core/editor").getEditedPostAttribute("meta"),
+	const meta = useSelect(
+		(select) => select("core/editor").getEditedPostAttribute("meta"),
+		[postId],
 	);
 	const { editPost } = useDispatch("core/editor");
+
+	const downloadImagesOriginal = async () => {
+		const response = await wp.apiFetch({
+			path: `/wp/v2/posts/${postId}/download_images_original`, // Custom REST route
+			method: "POST",
+		});
+
+		if (response?.success && response?.url) {
+			window.location.href = response.url;
+			editPost({ meta: { gallop_zip_file: response.filename } });
+		} else {
+			console.log("Error downloading originals images.");
+		}
+	};
 
 	const downloadImages = async () => {
 		const response = await wp.apiFetch({
@@ -45,7 +61,12 @@ const DownloadImagesButton = () => {
 		>
 			<p>Download all attached images.</p>
 			<Button isPrimary onClick={downloadImages}>
-				Download Now
+				Download Copyright
+			</Button>
+			<br />
+			<br />
+			<Button isPrimary onClick={downloadImagesOriginal}>
+				Download Originals
 			</Button>
 			{meta.gallop_zip_file && (
 				<div>
